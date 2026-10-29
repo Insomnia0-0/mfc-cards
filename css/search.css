@@ -1,0 +1,23 @@
+.search {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.search__input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-main);
+  transition: border-color 0.2s ease;
+}
+
+.search__input::placeholder {
+  color: var(--text-muted);
+}
+
+.search__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}

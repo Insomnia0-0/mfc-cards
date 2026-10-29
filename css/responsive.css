@@ -1,0 +1,53 @@
+@media (max-width: 640px) {
+  :root {
+    --container-padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .header__actions {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .header__actions .btn {
+    flex: 1;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cards-grid {
+    gap: 14px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+  }
+
+  .card-actions .btn {
+    width: 100%;
+  }
+
+  .modal {
+    width: calc(100% - 16px);
+  }
+
+  .modal__form {
+    padding: 20px;
+  }
+
+  .modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal__actions .btn {
+    width: 100%;
+  }
+}

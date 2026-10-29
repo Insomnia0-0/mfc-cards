@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход администратора — Карточки услуг МФЦ</title>
+
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/header.css" />
+  <link rel="stylesheet" href="css/forms.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body class="login-page">
+
+  <header class="header">
+    <a class="header__logo" href="index.html">
+      <span class="header__logo-mark">МФЦ</span>
+      <span class="header__logo-text">Справочник услуг</span>
+    </a>
+    <div class="header__actions">
+      <a class="btn btn--ghost" href="index.html">← К карточкам</a>
+    </div>
+  </header>
+
+  <main class="login-main">
+    <form class="login-card" id="login-form" novalidate>
+      <h1 class="login-card__title">Вход для администратора</h1>
+      <p class="login-card__subtitle">
+        Обычным пользователям вход не требуется — карточки доступны для чтения всем.
+      </p>
+
+      <label class="field">
+        <span class="field__label">E-mail</span>
+        <input class="field__input" type="email" id="login-email" name="email" autocomplete="username" required />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Пароль</span>
+        <input class="field__input" type="password" id="login-password" name="password" autocomplete="current-password" required />
+      </label>
+
+      <p class="modal__error" id="login-error" hidden></p>
+
+      <button type="submit" class="btn btn--primary btn--block" id="login-submit">Войти</button>
+    </form>
+  </main>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

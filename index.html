@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Справочник услуг МФЦ" />
+  <title>Карточки услуг МФЦ</title>
+
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/header.css" />
+  <link rel="stylesheet" href="css/nav.css" />
+  <link rel="stylesheet" href="css/search.css" />
+  <link rel="stylesheet" href="css/cards.css" />
+  <link rel="stylesheet" href="css/forms.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+  <header class="header">
+    <a class="header__logo" href="index.html">
+      <span class="header__logo-mark">МФЦ</span>
+      <span class="header__logo-text">Справочник услуг</span>
+    </a>
+    <div class="header__actions">
+      <button type="button" class="btn btn--ghost admin-only" id="btn-new-section">+ Раздел</button>
+      <a class="btn btn--ghost" href="login.html" id="btn-login">Войти</a>
+      <button type="button" class="btn btn--ghost admin-only" id="btn-logout">Выйти</button>
+    </div>
+  </header>
+
+  <nav class="section-nav" id="section-nav" aria-label="Разделы услуг"></nav>
+
+  <main class="main">
+    <div class="toolbar">
+      <div class="search">
+        <input type="search" id="search-input" class="search__input" placeholder="Поиск по названию карточки…" aria-label="Поиск по названию карточки" autocomplete="off" />
+      </div>
+      <button type="button" class="btn btn--primary admin-only" id="btn-new-card">+ Карточка</button>
+    </div>
+
+    <section class="cards-grid" id="cards-grid" aria-live="polite"></section>
+    <p class="empty-state" id="empty-state" hidden>Пока нет ни одной карточки. Администратор может добавить раздел и карточку.</p>
+  </main>
+
+  <dialog class="modal" id="view-card-dialog">
+    <div class="modal__form">
+      <h2 class="modal__title" id="view-card-title"></h2>
+      <div class="view-modal__content" id="view-card-content"></div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" data-close-dialog="view-card-dialog">Назад</button>
+        <button type="button" class="btn btn--danger admin-only" id="view-card-delete">Удалить</button>
+        <button type="button" class="btn btn--primary admin-only" id="view-card-edit">Редактировать</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="card-dialog">
+    <form class="modal__form" id="card-form" method="dialog" novalidate>
+      <h2 class="modal__title" id="card-dialog-title">Новая карточка</h2>
+      <input type="hidden" id="card-id" name="id" />
+      <input type="hidden" id="card-section-id" name="section_id" />
+      <label class="field">
+        <span class="field__label">Название</span>
+        <input class="field__input" type="text" id="card-title" name="title" maxlength="120" required />
+      </label>
+      <label class="field">
+        <span class="field__label">Порядок действий / содержимое</span>
+        <textarea class="field__input field__input--textarea" id="card-content" name="content" rows="10" required></textarea>
+      </label>
+      <p class="modal__error" id="card-error" hidden></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" data-close-dialog="card-dialog">Отмена</button>
+        <button type="submit" class="btn btn--primary">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="section-dialog">
+    <form class="modal__form" id="section-form" method="dialog" novalidate>
+      <h2 class="modal__title" id="section-dialog-title">Новый раздел</h2>
+      <input type="hidden" id="section-id" name="id" />
+      <label class="field">
+        <span class="field__label">Название раздела</span>
+        <input class="field__input" type="text" id="section-title" name="title" maxlength="80" required />
+      </label>
+      <p class="modal__error" id="section-error" hidden></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" data-close-dialog="section-dialog">Отмена</button>
+        <button type="submit" class="btn btn--primary">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal modal--compact" id="confirm-dialog">
+    <div class="modal__form">
+      <h2 class="modal__title" id="confirm-title">Удалить?</h2>
+      <p class="modal__text" id="confirm-text">Действие нельзя отменить.</p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" data-close-dialog="confirm-dialog">Отмена</button>
+        <button type="button" class="btn btn--danger" id="confirm-delete-btn">Удалить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
