@@ -18,6 +18,7 @@
 </head>
 <body>
 
+  <!-- Header -->
   <header class="header">
     <a class="header__logo" href="index.html">
       <span class="header__logo-mark">МФЦ</span>
@@ -30,8 +31,10 @@
     </div>
   </header>
 
+  <!-- Navigation -->
   <nav class="section-nav" id="section-nav" aria-label="Разделы услуг"></nav>
 
+  <!-- Main -->
   <main class="main">
     <div class="toolbar">
       <div class="search">
@@ -44,7 +47,8 @@
     <p class="empty-state" id="empty-state" hidden>Пока нет ни одной карточки. Администратор может добавить раздел и карточку.</p>
   </main>
 
-    <dialog class="modal" id="view-card-dialog">
+  <!-- View Dialog (Просмотр карточки) -->
+  <dialog class="modal" id="view-card-dialog">
     <div class="modal__form">
       <div class="modal-header-top">
         <h2 class="modal__title" id="view-card-title"></h2>
@@ -64,20 +68,38 @@
     </div>
   </dialog>
 
+  <!-- Edit Card Dialog (Создание и редактирование) -->
   <dialog class="modal" id="card-dialog">
     <form class="modal__form" id="card-form" method="dialog" novalidate>
       <h2 class="modal__title" id="card-dialog-title">Новая карточка</h2>
       <input type="hidden" id="card-id" name="id" />
       <input type="hidden" id="card-section-id" name="section_id" />
+      
       <label class="field">
         <span class="field__label">Название</span>
         <input class="field__input" type="text" id="card-title" name="title" maxlength="120" required />
       </label>
-      <label class="field">
+      
+      <!-- Обертка div вместо label для предотвращения потери фокуса -->
+      <div class="field">
         <span class="field__label">Порядок действий / содержимое</span>
-        <textarea class="field__input field__input--textarea" id="card-content" name="content" rows="10" required></textarea>
-      </label>
+        
+        <!-- Панель инструментов -->
+        <div class="editor-toolbar">
+          <button type="button" class="tool-btn" id="btn-open-picker">Выбрать цвет</button>
+          <button type="button" class="tool-btn" id="tool-reset-color" title="Убрать цвет с текста">Убрать цвет</button>
+          <div class="saved-colors" id="saved-colors"></div>
+        </div>
+        
+        <!-- Скрытая палитра (opacity + absolute, чтобы браузер разрешал программный клик) -->
+        <input type="color" id="tool-color" value="#818cf8" style="opacity: 0; position: absolute; pointer-events: none;">
+        
+        <!-- Визуальный редактор -->
+        <div class="field__input field__input--textarea editor-wysiwyg" id="card-content" contenteditable="true"></div>
+      </div>
+      
       <p class="modal__error" id="card-error" hidden></p>
+      
       <div class="modal__actions">
         <button type="button" class="btn btn--ghost" data-close-dialog="card-dialog">Отмена</button>
         <button type="submit" class="btn btn--primary">Сохранить</button>
@@ -85,6 +107,7 @@
     </form>
   </dialog>
 
+  <!-- Section Dialog (Создание раздела) -->
   <dialog class="modal" id="section-dialog">
     <form class="modal__form" id="section-form" method="dialog" novalidate>
       <h2 class="modal__title" id="section-dialog-title">Новый раздел</h2>
@@ -101,6 +124,7 @@
     </form>
   </dialog>
 
+  <!-- Confirm Dialog (Подтверждение удаления) -->
   <dialog class="modal modal--compact" id="confirm-dialog">
     <div class="modal__form">
       <h2 class="modal__title" id="confirm-title">Удалить?</h2>

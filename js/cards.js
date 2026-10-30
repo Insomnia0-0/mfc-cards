@@ -36,7 +36,7 @@ function cardTemplate(card) {
   return `
     <article class="card" data-id="${card.id}">
       <h3 class="card-title">${escapeHtml(card.title)}</h3>
-      <div class="card-content">${escapeHtml(card.content)}</div>
+      <div class="card-content">${card.content}</div>
     </article>
   `;
 }

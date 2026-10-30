@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
-  align-items: start; /* Карточки не будут растягиваться по высоте самой большой */
+  align-items: start;
 }
 
 .card {
@@ -41,8 +41,17 @@
   color: var(--text-muted);
   font-size: 0.95rem;
   overflow-wrap: anywhere;
+  word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 0;
+}
+
+/* Убираем лишние отступы у тегов внутри превью, чтобы текст красиво обрезался */
+.card-content > div,
+.card-content > p {
+  margin: 0;
+  display: inline;
 }

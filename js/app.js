@@ -47,7 +47,6 @@ function initViewDialog(openEditDialog, openConfirmDialog) {
   const editBtn = document.getElementById("view-card-edit");
   const deleteBtn = document.getElementById("view-card-delete");
   
-  // Элементы поиска внутри карточки
   const searchInput = document.getElementById("modal-search-input");
   const searchCount = document.getElementById("modal-search-count");
   const prevBtn = document.getElementById("modal-search-prev");
@@ -58,29 +57,60 @@ function initViewDialog(openEditDialog, openConfirmDialog) {
   let matches = [];
   let currentMatchIndex = -1;
 
-  // Функция экранирования спецсимволов для регулярного выражения
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   function updateHighlights(query) {
+    contentEl.innerHTML = originalContent; 
+    matches = [];
+    currentMatchIndex = -1;
+    
     if (!query) {
-      contentEl.innerHTML = escapeHtml(originalContent);
-      matches = [];
-      currentMatchIndex = -1;
       searchCount.textContent = "0/0";
       return;
     }
 
-    const parts = originalContent.split(new RegExp(`(${escapeRegExp(query)})`, 'gi'));
+    const regex = new RegExp(escapeRegExp(query), 'gi');
+    const walk = document.createTreeWalker(contentEl, NodeFilter.SHOW_TEXT, null, false);
+    const nodesToReplace = [];
     
-    const html = parts.map(part => 
-      part.toLowerCase() === query.toLowerCase() 
-        ? `<mark class="search-highlight">${escapeHtml(part)}</mark>` 
-        : escapeHtml(part)
-    ).join('');
+    let node;
+    while ((node = walk.nextNode())) {
+      if (node.parentNode.nodeName !== 'MARK' && regex.test(node.nodeValue)) {
+        nodesToReplace.push(node);
+      }
+      regex.lastIndex = 0;
+    }
 
-    contentEl.innerHTML = html;
+    nodesToReplace.forEach(textNode => {
+      const text = textNode.nodeValue;
+      const parent = textNode.parentNode;
+      const fragment = document.createDocumentFragment();
+      
+      let lastIndex = 0;
+      let match;
+      regex.lastIndex = 0;
+      
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+        }
+        
+        const mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        mark.textContent = match[0];
+        fragment.appendChild(mark);
+        
+        lastIndex = regex.lastIndex;
+      }
+      
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+      }
+      
+      parent.replaceChild(fragment, textNode);
+    });
     
     matches = Array.from(contentEl.querySelectorAll('mark.search-highlight'));
     
@@ -106,30 +136,34 @@ function initViewDialog(openEditDialog, openConfirmDialog) {
     }
   }
 
-  // Слушатели для поиска
-  searchInput.addEventListener("input", (e) => {
-    updateHighlights(e.target.value.trim());
-  });
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      updateHighlights(e.target.value.trim());
+    });
+  }
 
-  prevBtn.addEventListener("click", () => {
-    if (matches.length === 0) return;
-    currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
-    updateActiveMatch();
-  });
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      if (matches.length === 0) return;
+      currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+      updateActiveMatch();
+    });
+  }
 
-  nextBtn.addEventListener("click", () => {
-    if (matches.length === 0) return;
-    currentMatchIndex = (currentMatchIndex + 1) % matches.length;
-    updateActiveMatch();
-  });
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      if (matches.length === 0) return;
+      currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+      updateActiveMatch();
+    });
+  }
 
   function openViewDialog(card) {
     currentViewCard = card;
     titleEl.textContent = card.title;
     originalContent = card.content;
     
-    // Сбрасываем поиск при открытии
-    searchInput.value = "";
+    if (searchInput) searchInput.value = "";
     updateHighlights("");
     
     dialog.showModal();
@@ -160,18 +194,146 @@ function initCardDialog() {
   const form = document.getElementById("card-form");
   const titleEl = document.getElementById("card-dialog-title");
   const errorEl = document.getElementById("card-error");
+  const editor = document.getElementById("card-content");
+  
+  const openPickerBtn = document.getElementById('btn-open-picker');
+  const colorInput = document.getElementById('tool-color');
+  const resetBtn = document.getElementById('tool-reset-color');
+  const swatchesContainer = document.getElementById('saved-colors');
+  const DEFAULT_COLORS = ['#f87171', '#34d399', '#60a5fa', '#fbbf24', '#c084fc', '#e2e8f0'];
+  
+  let savedColors = JSON.parse(localStorage.getItem('mfc_saved_colors'));
+  if (!Array.isArray(savedColors) || savedColors.length === 0) {
+    savedColors = [...DEFAULT_COLORS];
+  }
 
+  function renderSwatches() {
+    if (!swatchesContainer) return;
+    swatchesContainer.innerHTML = savedColors.map(c => 
+      `<button type="button" class="color-swatch" style="background-color: ${c}" data-color="${c}" title="Применить цвет"></button>`
+    ).join('');
+  }
+
+  // --- Сохранение и восстановление выделения ---
+  let savedRange = null;
+
+  function saveSelection() {
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer) || editor === range.commonAncestorContainer) {
+        savedRange = range;
+      }
+    }
+  }
+
+  function restoreSelection() {
+    if (savedRange) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(savedRange);
+    }
+  }
+
+  if (editor) {
+    editor.addEventListener('keyup', saveSelection);
+    editor.addEventListener('mouseup', saveSelection);
+    editor.addEventListener('click', () => editor.focus());
+    
+    // Вставка только чистого текста
+    editor.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+  }
+
+  // Защита от потери фокуса при клике на панель
+  const toolbar = document.querySelector('.editor-toolbar');
+  if (toolbar) {
+    toolbar.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // Предотвращаем уход фокуса из редактора
+      saveSelection();
+    });
+  }
+
+  // --- Логика цветов ---
+  function applyColor(color) {
+    if (!editor) return;
+    editor.focus();
+    restoreSelection();
+    document.execCommand('foreColor', false, color);
+    saveSelection();
+  }
+
+  if (openPickerBtn) {
+    openPickerBtn.addEventListener('click', () => {
+      colorInput.click();
+    });
+  }
+
+  if (colorInput) {
+    colorInput.addEventListener('change', (e) => {
+      const newColor = e.target.value;
+      applyColor(newColor);
+      
+      if (!savedColors.includes(newColor)) {
+        savedColors.push(newColor);
+        if (savedColors.length > 10) savedColors.shift();
+        localStorage.setItem('mfc_saved_colors', JSON.stringify(savedColors));
+        renderSwatches();
+      }
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (!editor) return;
+      editor.focus();
+      restoreSelection();
+      // Возвращаем стандартный цвет (--text-main)
+      document.execCommand('foreColor', false, '#e5e7eb');
+      saveSelection();
+    });
+  }
+
+  if (swatchesContainer) {
+    swatchesContainer.addEventListener('click', (e) => {
+      const swatch = e.target.closest('.color-swatch');
+      if (swatch) {
+        applyColor(swatch.dataset.color);
+      }
+    });
+  }
+
+  renderSwatches();
+
+  // --- Открытие/закрытие и сохранение ---
   function openCardDialog(item) {
     if (!dialog || !form) return;
     errorEl.hidden = true;
     form.reset();
+    
     document.getElementById("card-id").value = item?.id || "";
     document.getElementById("card-section-id").value =
       item?.section ||
       document.querySelector(".nav-item.active")?.dataset.section ||
       "";
     document.getElementById("card-title").value = item?.title || "";
-    document.getElementById("card-content").value = item?.content || "";
+    
+    if (editor) {
+      if (item && item.content) {
+        if (!item.content.includes('<')) {
+           editor.innerHTML = item.content.replace(/\n/g, '<br>');
+        } else {
+           editor.innerHTML = item.content;
+        }
+      } else {
+        editor.innerHTML = "";
+      }
+    }
+    
+    savedRange = null;
     titleEl.textContent = item ? "Редактировать карточку" : "Новая карточка";
     dialog.showModal();
   }
@@ -187,9 +349,9 @@ function initCardDialog() {
     const id = document.getElementById("card-id").value;
     const sectionId = document.getElementById("card-section-id").value;
     const title = document.getElementById("card-title").value.trim();
-    const content = document.getElementById("card-content").value.trim();
+    const content = editor ? editor.innerHTML.trim() : "";
 
-    if (!title || !content) {
+    if (!title || !content || content === '<br>') {
       errorEl.textContent = "Заполните название и содержимое";
       errorEl.hidden = false;
       return;
@@ -252,8 +414,6 @@ function initSectionDialog(onSectionCreated) {
   });
 }
 
-/* Filters */
-
 async function applyFilters() {
   window.currentSearchQuery = currentQuery;
   const sections = await fetchSections();
@@ -297,8 +457,6 @@ async function applyFilters() {
     await renderCards(activeId, currentQuery);
   }
 }
-
-/* Init */
 
 function init() {
   initAuth();
