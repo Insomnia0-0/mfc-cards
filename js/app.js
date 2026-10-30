@@ -2,7 +2,7 @@ import { initAuth } from "./auth.js";
 import { initNavigation } from "./nav.js";
 import { renderCards, bindCardActions } from "./cards.js";
 import { initSearch } from "./search.js";
-import { createSection, createCard, updateCard, deleteCard, fetchSections, fetchCards } from "./api.js";
+import { createSection, createCard, updateCard, deleteCard, fetchSections, fetchCards, escapeHtml } from "./api.js";
 
 /* State */
 
@@ -46,12 +46,92 @@ function initViewDialog(openEditDialog, openConfirmDialog) {
   const contentEl = document.getElementById("view-card-content");
   const editBtn = document.getElementById("view-card-edit");
   const deleteBtn = document.getElementById("view-card-delete");
+  
+  // Элементы поиска внутри карточки
+  const searchInput = document.getElementById("modal-search-input");
+  const searchCount = document.getElementById("modal-search-count");
+  const prevBtn = document.getElementById("modal-search-prev");
+  const nextBtn = document.getElementById("modal-search-next");
+
   let currentViewCard = null;
+  let originalContent = "";
+  let matches = [];
+  let currentMatchIndex = -1;
+
+  // Функция экранирования спецсимволов для регулярного выражения
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function updateHighlights(query) {
+    if (!query) {
+      contentEl.innerHTML = escapeHtml(originalContent);
+      matches = [];
+      currentMatchIndex = -1;
+      searchCount.textContent = "0/0";
+      return;
+    }
+
+    const parts = originalContent.split(new RegExp(`(${escapeRegExp(query)})`, 'gi'));
+    
+    const html = parts.map(part => 
+      part.toLowerCase() === query.toLowerCase() 
+        ? `<mark class="search-highlight">${escapeHtml(part)}</mark>` 
+        : escapeHtml(part)
+    ).join('');
+
+    contentEl.innerHTML = html;
+    
+    matches = Array.from(contentEl.querySelectorAll('mark.search-highlight'));
+    
+    if (matches.length > 0) {
+      currentMatchIndex = 0;
+      updateActiveMatch();
+    } else {
+      currentMatchIndex = -1;
+      searchCount.textContent = "0/0";
+    }
+  }
+
+  function updateActiveMatch() {
+    matches.forEach((mark, idx) => {
+      mark.classList.toggle("active", idx === currentMatchIndex);
+    });
+    
+    if (currentMatchIndex >= 0 && currentMatchIndex < matches.length) {
+      matches[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      searchCount.textContent = `${currentMatchIndex + 1}/${matches.length}`;
+    } else {
+      searchCount.textContent = `0/${matches.length}`;
+    }
+  }
+
+  // Слушатели для поиска
+  searchInput.addEventListener("input", (e) => {
+    updateHighlights(e.target.value.trim());
+  });
+
+  prevBtn.addEventListener("click", () => {
+    if (matches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+    updateActiveMatch();
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (matches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+    updateActiveMatch();
+  });
 
   function openViewDialog(card) {
     currentViewCard = card;
     titleEl.textContent = card.title;
-    contentEl.textContent = card.content;
+    originalContent = card.content;
+    
+    // Сбрасываем поиск при открытии
+    searchInput.value = "";
+    updateHighlights("");
+    
     dialog.showModal();
   }
 

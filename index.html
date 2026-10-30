@@ -44,9 +44,17 @@
     <p class="empty-state" id="empty-state" hidden>Пока нет ни одной карточки. Администратор может добавить раздел и карточку.</p>
   </main>
 
-  <dialog class="modal" id="view-card-dialog">
+    <dialog class="modal" id="view-card-dialog">
     <div class="modal__form">
-      <h2 class="modal__title" id="view-card-title"></h2>
+      <div class="modal-header-top">
+        <h2 class="modal__title" id="view-card-title"></h2>
+        <div class="modal-search-container">
+          <input type="search" id="modal-search-input" class="modal-search-input" placeholder="Найти в тексте..." autocomplete="off">
+          <span class="modal-search-counter" id="modal-search-count">0/0</span>
+          <button type="button" class="modal-search-btn" id="modal-search-prev" title="Предыдущее">↑</button>
+          <button type="button" class="modal-search-btn" id="modal-search-next" title="Следующее">↓</button>
+        </div>
+      </div>
       <div class="view-modal__content" id="view-card-content"></div>
       <div class="modal__actions">
         <button type="button" class="btn btn--ghost" data-close-dialog="view-card-dialog">Назад</button>
